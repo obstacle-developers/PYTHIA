@@ -1,35 +1,25 @@
 # PYTHIA
 
-Physics-aware anomaly detection and scientific reasoning for high-energy physics.
+An autonomous physics-aware anomaly detection and interpretation system for high-energy particle collisions.
 
-## Current Status
+## Current Progress
 
-Month 1 Complete
+- Week 1: End-to-end anomaly pipeline ✅
+- Week 2: Real LHCO dataset integration ✅
+- Week 3: Jet substructure features ✅
+- Week 4: Physics Translator ✅
 
-Capabilities:
-- LHCO anomaly detection pipeline
-- Isolation Forest baseline
-- Physics feature engineering
-- Physics Translator
-- Knowledge Graph storage
+## Current Metrics
 
-Latest Results:
-
-AUC-ROC:        0.771
-Precision@100:  0.190
-Best Signal Rank: 1
+| Metric | Value |
+|----------|----------|
+| AUC-ROC | 0.771 |
+| Precision@100 | 0.190 |
+| Best Signal Rank | 1 |
 
 ## Roadmap
 
-Month 2
-- Theory Retrieval Layer
-- Signature Matching Engine
-- Hypothesis Ranking
-
-Month 3
-- Contradiction Detection
-- Literature Graph
-- Evidence Aggregation
-
-Month 4+
-- Scientific Reasoning Loop
+- Month 2: Theory Retrieval Layer
+- Month 3: Scientific Reasoning Layer
+- Month 4: Contradiction Detection
+- Month 5: Hypothesis Generation
