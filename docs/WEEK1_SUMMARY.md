@@ -1,0 +1,1 @@
+Week 1 completed. End-to-end anomaly detection pipeline operational.
