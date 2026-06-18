@@ -1,32 +1,33 @@
 # PYTHIA Roadmap
 
-## Month 1 ✓
+This root file is intentionally kept as a short pointer to avoid duplicate roadmap documents.
 
-Week 1
-- Foundation
-- Evaluation Framework
+The canonical roadmap document is:
 
-Week 2
-- Real LHCO Data
-- Baseline Anomaly Detection
+```text
+docs/ROADMAP.md
+```
 
-Week 3
-- Physics Features
-- Jet Substructure
+## Current Status
 
-Week 4
-- Physics Translator
+Weeks 1 through 10 are complete.
 
-## Month 2
+Current next step:
 
-Week 5
-- Theory Retrieval
+```text
+Pre-Week 11 Readiness Gate
+→ eval/exec safety audit
+→ top-10 anomaly chain expansion
+→ cross-trace consistency check
+→ then Week 11 Reasoning Trace Evaluation v1
+```
 
-Week 6
-- Signature Database
+For the full week-by-week roadmap, completed milestones, and future plan, see:
 
-Week 7
-- Hypothesis Matching
+```text
+docs/ROADMAP.md
+```
 
-Week 8
-- Theory Ranking
+## Important Protocol
+
+Do not treat this root file as the detailed source of truth. Keep detailed roadmap updates in `docs/ROADMAP.md` and keep this file as a stable pointer.
