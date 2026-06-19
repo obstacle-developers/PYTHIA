@@ -2,7 +2,13 @@
 
 **An Autonomous Scientific Reasoning System for Particle Physics**
 
-> "The universe has been hiding its secrets in the data. PYTHIA is built to find them."
+## Current Project Status
+
+PYTHIA v1 has completed its auditable reasoning pipeline through Week 12. The Week 12 Integrated Scientific Report has been verified with status **VERIFIED PASS**.
+
+The project is now moving toward **PYTHIA Ω**, an auditable candidate new-particle discovery workflow. This roadmap is designed to detect, cluster, test, falsify, and document candidate signal patterns for human review.
+
+Important limitation: PYTHIA does **not** claim a new-particle discovery by itself. No particle discovery is claimed, and the current project state does not establish evidence for new physics.
 
 ---
 
@@ -103,10 +109,10 @@ than a system that merely scores higher.
 | Precision@100 | 0.190 |
 | Best Signal Rank | 1 |
 | Signal in top 100 | 19 |
-| Reasoning traces | 1 complete |
-| Theories in DB | 6 |
-| Constraints with citations | 3 |
-| First cited rejection | Dark Photon / hep-ex/0312023 |
+| Reasoning traces | 10 complete |
+| Week 12 report status | VERIFIED PASS |
+| Trace quality scores | 1.0000 |
+| Next target | PYTHIA Ω Week 13 — Anomaly Cluster Engine |
 
 ---
 
@@ -158,7 +164,10 @@ and two-prong substructure consistency.
 | 8 | Theory Ranking + Recommendation | ✅ |
 | 9 | Source Registry v1 | ✅ |
 | 10 | Full Reasoning Trace Assembly | ✅ |
-| 11 | Reasoning Trace Evaluator | 🔄 |
+| 10.5 | Scaling Patch | ✅ |
+| 11 | Reasoning Trace Evaluator | ✅ |
+| 12 | Integrated Scientific Report | ✅ |
+| 13 | PYTHIA Ω Anomaly Cluster Engine | Planned |
 
 ---
 
@@ -167,8 +176,8 @@ and two-prong substructure consistency.
 ```
 Month 1 (Weeks 1-4):   Detection + Interpretation    COMPLETE
 Month 2 (Weeks 5-10):  Reasoning Infrastructure      COMPLETE
-Month 3 (Weeks 11-16): Evaluation + Cross-domain     IN PROGRESS
-Month 4 (Weeks 17-20): Autonomous Reasoning Loop     PLANNED
+Month 3 (Weeks 11-12): Evaluation + Reporting       COMPLETE
+PYTHIA Ω (Weeks 13-20): Candidate workflow          PLANNED
 ```
 
 ---
@@ -233,4 +242,3 @@ MIT
 
 *Built with Claude, ChatGPT, and Gemini working in parallel
 under human direction.*
-```

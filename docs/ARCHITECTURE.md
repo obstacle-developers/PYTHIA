@@ -2,9 +2,9 @@
 
 PYTHIA is a physics-aware anomaly detection and scientific reasoning infrastructure for high-energy particle collision data.
 
-The project began as an anomaly detection pipeline and has evolved into an auditable reasoning system. The current architecture is designed to preserve every major step from event observation to source-linked recommendation.
+The project began as an anomaly detection pipeline and has evolved into an auditable reasoning system. The current v1 architecture preserves the path from event observation to evaluated scientific report. The future PYTHIA Ω architecture extends this into a candidate workflow that requires known-explanation testing, explicit predictions, falsification checks, and human review.
 
-## Frozen Architecture v1.0
+## Current v1 Architecture
 
 ```text
 Event
@@ -19,6 +19,25 @@ Event
 → Recommendation
 → Source Bundle
 → Reasoning Trace
+→ Trace Evaluation
+→ Scientific Report
+```
+
+## Future PYTHIA Ω Architecture
+
+```text
+Collision Data
+→ Anomaly Detection
+→ Anomaly Clustering
+→ Signal Fingerprint Extraction
+→ Known Explanation Testing
+→ Unknown Candidate Particle Constructor
+→ Prediction Engine
+→ Falsification Engine
+→ Background Stress Test
+→ Candidate Survivor Update
+→ Discovery Dossier
+→ Human Review
 ```
 
 ## Governing Rules
@@ -33,12 +52,16 @@ Event
 8. Ranking scores are ordering scores, not probabilities.
 9. Recommendations suggest follow-up analysis, not discovery claims.
 10. Every reasoning step must be auditable.
+11. PYTHIA does not claim a new-particle discovery by itself.
+12. Candidate dossiers require human review.
+13. Known explanations must be tested before unknown candidates are constructed.
+14. Every candidate must make predictions and be falsifiable.
 
 ## Current Completed Layers
 
 ### 1. Data and Feature Layer
 
-- Real LHCO anomaly benchmark integration.
+- LHCO anomaly benchmark integration.
 - Physics-aware feature extraction.
 - Jet mass, tau21, mass asymmetry, and pT asymmetry features.
 - Percentile estimation for anomaly interpretation.
@@ -46,7 +69,7 @@ Event
 ### 2. Anomaly Detection Layer
 
 - Isolation Forest baseline.
-- Real benchmark performance:
+- Benchmark performance:
   - AUC-ROC: 0.771
   - Precision@100: 0.190
   - Best Signal Rank: 1
@@ -59,23 +82,9 @@ Event
 - 0 empty summaries.
 - 100 interpretations stored in the knowledge graph.
 
-### 4. Evidence Layer
+### 4. Evidence and Phenomenology Layer
 
-Evidence grounds reasoning in observed values and percentiles. It links detector-level quantities to later interpretation steps.
-
-Example:
-
-```text
-jet1_mass = 1123 GeV
-percentile ≈ extreme
-→ evidence for unusually massive jet
-```
-
-### 5. Phenomenology Layer
-
-Maps evidence into controlled physics signatures.
-
-Examples:
+Evidence grounds reasoning in observed values and percentiles, then maps those observations into controlled physics signatures such as:
 
 ```text
 boosted_diboson
@@ -86,127 +95,89 @@ boosted_object
 qcd_outlier
 ```
 
-### 6. Theory Retrieval Layer
+### 5. Theory Retrieval Layer
 
-Retrieves candidate theories from data-driven theory-signature links.
+Retrieves candidate theories from data-driven theory-signature links. Retrieval suggests candidates for evaluation; it does not decide truth.
 
-Current top-anomaly retrieval for `interp_rank_001`:
+### 6. Constraint Evaluation Layer
 
-```text
-1. w_prime       relevance_score 0.9900
-2. rs_graviton  relevance_score 0.9400
-3. heavy_higgs  relevance_score 0.6900
-4. dark_photon  relevance_score 0.3900
-```
+Applies structured constraints stored as data. Rejections require source linkage and survivors are preserved separately from rejected candidates.
 
-Retrieval only suggests candidates. It does not decide truth.
+### 7. Ranking and Recommendation Layer
 
-### 7. Constraint Engine
+Ranks only surviving candidates and generates deterministic follow-up recommendations from templates. Ranking and recommendation are workflow outputs, not discovery claims.
 
-Applies structured constraints stored as SQLite data. The evaluator is code and must not use unsafe `eval()` or `exec()`.
+### 8. Source Bundle Layer
 
-First cited rejection:
+Links constraints, retrieval mappings, recommendations, and trace outputs to source records. External sources remain subject to review unless metadata has been verified.
 
-```text
-Rejected theory: dark_photon
-Constraint: dp_diboson_topology
-Reason: dark_photon rejected by dp_diboson_topology
-Source: hep-ex/0312023
-Version: constraint_db_v1.0
-```
+### 9. Reasoning Trace Layer
 
-Survivors:
+Assembles each anomaly workflow into a source-linked reasoning trace containing anomaly, phenomenology, retrieval, rejection, survivor, ranking, recommendation, and source nodes.
+
+Week 10.5 scaled this layer to 10 traces with status **PASS**.
+
+### 10. Trace Evaluation Layer
+
+Week 11 evaluated the scaled trace set:
 
 ```text
-w_prime
-rs_graviton
-heavy_higgs
+traces evaluated: 10
+trace evaluation checks: 140
+cross-trace evaluations: 3
+trace quality scores: 1.0000
+status: PASS
 ```
 
-### 8. Ranking Layer
+### 11. Scientific Report Layer
 
-Ranks only surviving theories. Rejected theories are excluded.
+Week 12 generated the integrated scientific report and verified it with status **VERIFIED PASS**.
 
-Current ranked survivors:
+Verified source DB counts:
 
 ```text
-1. w_prime       ranking_score 0.9900
-2. rs_graviton  ranking_score 0.9400
-3. heavy_higgs  ranking_score 0.6900
+reasoning_traces: 10
+trace_evaluations: 10
+trace_evaluation_checks: 140
+cross_trace_evaluations: 3
+recommendations: 10
+source_retrievals: 33
 ```
 
-### 9. Recommendation Layer
+## PYTHIA Ω Planned Layers
 
-Generates deterministic follow-up recommendations from templates.
+### Week 13 — Anomaly Cluster Engine
 
-Current recommendation:
+Group related anomalies into auditable clusters for repeated-pattern analysis.
 
-```text
-Prioritize a W Prime-style boosted diboson follow-up: inspect dijet/diboson invariant mass, jet mass symmetry, and two-prong substructure consistency.
-```
+### Week 14 — Signal Fingerprint Extractor
 
-### 10. Source Registry Layer
+Extract cluster-level kinematic and phenomenological signatures.
 
-Converts citation strings and internal mappings into structured source records and links.
+### Week 15 — Known Explanation Exhaustion Engine
 
-Current registered source labels:
+Test known Standard Model, detector, reconstruction, and known beyond-Standard-Model alternatives before unknown candidate construction.
 
-```text
-hep-ex/0312023
-CMS-HIG-19-009
-CMS-EXO-19-016
-curated_mapping_v0.7
-recommendation_rules_v1.0
-```
+### Week 16 — Unknown Candidate Particle Constructor
 
-External sources are marked `needs_review` unless metadata is verified. Internal mappings are marked `placeholder`.
+Construct provisional unknown-candidate descriptions only after known explanations are insufficient.
 
-### 11. Reasoning Trace Layer
+### Week 17 — Candidate Prediction Engine
 
-Assembles the full chain into one exportable scientific reasoning object.
+Require every candidate to produce explicit, testable predictions.
 
-Current trace:
+### Week 18 — Candidate Falsification Engine
 
-```text
-Trace ID: trace_interp_rank_001_v1
-Anomaly ID: interp_rank_001
-Phenomenology: boosted_diboson
-Completeness Score: 1.0
-Status: PASS
-```
+Define checks that could disconfirm or weaken each candidate.
 
-Trace includes:
+### Week 19 — Background Stress Test Layer
 
-```text
-anomaly node
-phenomenology node
-retrieval nodes
-rejection node
-survivor / ranking nodes
-recommendation node
-source nodes
-reasoning edges
-```
+Stress-test candidates against background, systematic, and selection-effect explanations.
 
-## Current End-to-End Reasoning Chain
+### Week 20 — Candidate Discovery Dossier
 
-```text
-Anomaly: interp_rank_001
-→ Phenomenology: boosted_diboson
-→ Retrieved: w_prime, rs_graviton, heavy_higgs, dark_photon
-→ Rejected: dark_photon
-→ Constraint: dp_diboson_topology
-→ Source: hep-ex/0312023
-→ Survivors: w_prime, rs_graviton, heavy_higgs
-→ Ranked top survivor: w_prime
-→ Recommendation: W Prime-style boosted diboson follow-up
-→ Source-linked reasoning trace exported
-```
+Assemble auditable candidate dossiers for expert human review.
 
 ## Current Status
 
-PYTHIA has completed Weeks 1 through 10 and is now an early auditable scientific reasoning infrastructure prototype.
-
-Next step: Week 11 — Reasoning Trace Evaluation v1.
-
-Week 11 should evaluate whether traces are complete, internally consistent, source-linked, non-contradictory, and scientifically useful before adding new capabilities.
+PYTHIA v1 is complete through Week 12. The next target is PYTHIA Ω Week 13 — Anomaly Cluster Engine.

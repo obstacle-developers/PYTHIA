@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.4-week12
+
+Status: Week 10.5 through Week 12 complete. PYTHIA v1 reasoning pipeline is complete through the verified Week 12 Integrated Scientific Report.
+
+Added:
+- Week 10.5 Scaling Patch.
+- Week 11 Reasoning Trace Evaluator.
+- Week 12 Integrated Scientific Report.
+- Documentation for the PYTHIA Ω roadmap.
+
+Week 10.5 Scaling Patch:
+- Scaled the reasoning trace workflow to the top 10 traces.
+- Final status: PASS.
+- Final counts: 10 reasoning traces, 97 reasoning trace nodes, 96 reasoning trace edges, 40 theory retrievals, 10 rejections, 30 survivors, 30 theory rankings, 10 recommendations, and 33 source retrievals.
+
+Week 11 Reasoning Trace Evaluator:
+- Evaluated 10 traces.
+- Completed 140 trace evaluation checks.
+- Completed 3 cross-trace evaluations.
+- All trace quality scores were `1.0000`.
+- Final status: PASS.
+- Final export preserved.
+
+Week 12 Integrated Scientific Report:
+- Generated the integrated scientific report.
+- Verified required report, summary, export, and source database outputs.
+- Source database counts included 10 reasoning traces, 10 trace evaluations, 140 trace evaluation checks, 3 cross-trace evaluations, 10 recommendations, and 33 source retrievals.
+- Final status: VERIFIED PASS.
+
+Important limitation:
+- PYTHIA does not claim a new-particle discovery by itself. Week 12 verifies report generation and trace auditability; it does not establish evidence for new physics.
+
 ## v0.3-week10
 
 Status: Weeks 1 through 10 complete.
