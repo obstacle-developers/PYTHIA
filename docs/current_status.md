@@ -57,7 +57,11 @@ The current required regression check is:
 python -m pytest -q
 ```
 
-This command should pass for Sprint 7 documentation updates.
+This command should pass after Sprint 8 code-health hardening.
+
+## Sprint 8 code-health hardening
+
+Sprint 8 addressed high-priority Jules code-health warnings before Week 14, including SQLite identifier validation, ZIP archive path hardening, batched JSONL append paths, member indexing for cluster helpers, and precompiled safety regex checks. Week 14 remains the next science implementation step. Candidate-particle construction remains deferred.
 
 ## Current limitations
 

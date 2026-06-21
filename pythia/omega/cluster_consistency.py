@@ -12,7 +12,8 @@ from numbers import Real
 from pathlib import Path
 from typing import Any
 
-from pythia.omega.clusters import append_cluster_consistency, make_cluster_consistency_record
+from pythia.core.jsonl import append_jsonl_many
+from pythia.omega.clusters import make_cluster_consistency_record, validate_cluster_consistency_record
 
 JsonRecord = dict[str, Any]
 
@@ -138,5 +139,5 @@ def append_consistency_records(path: str | Path, records: Sequence[Mapping[str, 
     """Append consistency records to JSONL using cluster JSONL validation."""
     output_path = Path(path)
     for record in records:
-        append_cluster_consistency(output_path, record)
-    return output_path
+        validate_cluster_consistency_record(record)
+    return append_jsonl_many(output_path, records)

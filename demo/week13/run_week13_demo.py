@@ -19,7 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from pythia.core.jsonl import append_jsonl, iter_jsonl
+from pythia.core.jsonl import append_jsonl_many, iter_jsonl
 from pythia.core.safety import assert_no_forbidden_discovery_language
 from pythia.omega.cluster_consistency import evaluate_cluster_consistency
 from pythia.omega.cluster_engine import run_mock_cluster_engine
@@ -38,8 +38,11 @@ def _read_records(path: Path) -> list[dict[str, Any]]:
     return [dict(record) for record in iter_jsonl(path)]
 
 
-def _members_for_cluster(cluster_id: str, members: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
-    return [member for member in members if member.get("cluster_id") == cluster_id]
+def _members_by_cluster(members: Sequence[Mapping[str, Any]]) -> dict[str, list[Mapping[str, Any]]]:
+    grouped: dict[str, list[Mapping[str, Any]]] = {}
+    for member in members:
+        grouped.setdefault(str(member.get("cluster_id")), []).append(member)
+    return grouped
 
 
 def _normalise_engine_output(engine_output: dict[str, Any]) -> dict[str, Any]:
@@ -66,9 +69,10 @@ def run_demo(input_path: Path = DEFAULT_INPUT_PATH, output_dir: Path = DEFAULT_O
 
     consistency_by_cluster: dict[str, list[dict[str, Any]]] = {}
     consistency_records: list[dict[str, Any]] = []
+    members_by_cluster = _members_by_cluster(engine_output["members"])
     for cluster in engine_output["clusters"]:
         cluster_id = str(cluster["cluster_id"])
-        members = _members_for_cluster(cluster_id, engine_output["members"])
+        members = members_by_cluster.get(cluster_id, [])
         checks = evaluate_cluster_consistency(
             cluster,
             members,
@@ -89,12 +93,9 @@ def run_demo(input_path: Path = DEFAULT_INPUT_PATH, output_dir: Path = DEFAULT_O
     consistency_path = output_dir / "consistency.jsonl"
     report_markdown = write_week13_cluster_report(report, output_dir / "week13_report.md")
 
-    for cluster in engine_output["clusters"]:
-        append_jsonl(cluster_path, cluster)
-    for member in engine_output["members"]:
-        append_jsonl(member_path, member)
-    for record in consistency_records:
-        append_jsonl(consistency_path, record)
+    append_jsonl_many(cluster_path, engine_output["clusters"])
+    append_jsonl_many(member_path, engine_output["members"])
+    append_jsonl_many(consistency_path, consistency_records)
 
     return {
         "clusters": cluster_path,

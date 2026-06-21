@@ -41,6 +41,11 @@ ALLOWED_WORDING = (
 
 SAFE_STATUS_LABELS = ("PASS", "VERIFIED PASS", "REVIEW", "WARN", "FAIL", "SKIP")
 
+_FORBIDDEN_LANGUAGE_PATTERNS = {
+    phrase: re.compile(rf"(?<![a-z0-9_]){re.escape(phrase)}(?![a-z0-9_])")
+    for phrase in FORBIDDEN_DISCOVERY_PHRASES + PROBABILITY_MISUSE_PHRASES
+}
+
 
 def find_forbidden_discovery_language(text: str) -> list[str]:
     """Return forbidden discovery phrases found in text, case-insensitively."""
@@ -50,7 +55,7 @@ def find_forbidden_discovery_language(text: str) -> list[str]:
 
 def _phrase_in_text(phrase: str, text: str) -> bool:
     """Return whether a forbidden phrase appears as a token-delimited phrase."""
-    return re.search(rf"(?<![a-z0-9_]){re.escape(phrase)}(?![a-z0-9_])", text.lower()) is not None
+    return _FORBIDDEN_LANGUAGE_PATTERNS[phrase].search(text.lower()) is not None
 
 
 def find_forbidden_language_in_value(value: Any) -> list[str]:

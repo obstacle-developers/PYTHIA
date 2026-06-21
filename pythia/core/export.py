@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import re
 import zipfile
 from pathlib import Path
 from typing import Any, Iterable
+
+_WINDOWS_DRIVE_RE = re.compile(r"^[A-Za-z]:")
 
 
 def ensure_export_dir(path: str | Path) -> Path:
@@ -23,6 +26,26 @@ def _resolve_output(directory: str | Path, filename: str, suffix: str) -> Path:
     if not filename.endswith(suffix):
         raise ValueError(f"filename must end with {suffix}")
     return ensure_export_dir(directory) / filename
+
+
+def _safe_archive_name(name: str | Path) -> str:
+    """Return a POSIX ZIP member name after rejecting traversal forms."""
+    raw_name = str(name)
+    if not raw_name:
+        raise ValueError("archive member name must not be empty")
+    if "\\" in raw_name:
+        raise ValueError("archive member name must use POSIX separators")
+    if _WINDOWS_DRIVE_RE.match(raw_name):
+        raise ValueError("archive member name must not include a Windows drive prefix")
+
+    path = Path(raw_name)
+    if path.is_absolute() or raw_name.startswith("/"):
+        raise ValueError("archive member name must not be absolute")
+
+    parts = raw_name.split("/")
+    if any(part in {"", ".."} for part in parts):
+        raise ValueError("archive member name must not traverse directories")
+    return "/".join(parts)
 
 
 def write_json(directory: str | Path, filename: str, data: Any) -> Path:
@@ -47,5 +70,5 @@ def write_zip(directory: str | Path, filename: str, files: Iterable[str | Path])
             path = Path(file_path)
             if not path.is_file():
                 raise FileNotFoundError(path)
-            archive.write(path, arcname=path.name)
+            archive.write(path, arcname=_safe_archive_name(path.name))
     return output
