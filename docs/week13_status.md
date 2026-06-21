@@ -36,4 +36,4 @@ The report language is intentionally conservative:
 
 ## Next step
 
-Week 14 Signal Fingerprint Extractor is next, after Sprint 7 documentation updates are complete. Candidate construction remains out of scope until known explanations have been tested.
+Sprint 7 is the documentation/status update and is complete after this PR merges. The immediate next implementation step is Week 14 Signal Fingerprint Extractor. Candidate construction remains out of scope until known explanations have been tested.

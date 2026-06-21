@@ -2,13 +2,13 @@
 
 ## Immediate next step
 
-The immediate next technical step after this documentation sprint is **Week 14 Signal Fingerprint Extractor**.
+**Sprint 7:** documentation/status update complete after this PR merges.
 
-Week 14 should remain focused on extracting auditable signal fingerprints from anomaly-family outputs. It should not construct candidate particles or claim discovery.
+**Immediate next implementation step:** Week 14 Signal Fingerprint Extractor. Week 14 should remain focused on extracting auditable signal fingerprints from anomaly-family outputs. It should not construct candidate particles or claim discovery.
 
 ## Do not start yet
 
-Do **not** start the candidate-particle constructor yet. Candidate construction belongs only after known explanations have been tested and found insufficient.
+Candidate-particle construction remains deferred. Candidate construction belongs only after known explanations have been tested and found insufficient.
 
 Do **not** add autonomous discovery language. PYTHIA outputs must remain audit-oriented and human-review-gated.
 

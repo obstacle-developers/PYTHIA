@@ -17,7 +17,7 @@ PYTHIA does **not** claim particle discovery. It reports candidate patterns, unr
 | Week 13 demo capsule | **REPRODUCIBLE** |
 | Week 14 Signal Fingerprint Extractor | **NEXT — not started** |
 
-Current scope is documentation and status alignment for **Codex Sprint 7**. Week 14 implementation has not started in this repository state.
+Sprint 7 is the documentation/status update and is complete after this PR merges. Week 14 implementation has not started in this repository state.
 
 ---
 
@@ -103,12 +103,12 @@ PYTHIA uses safety-first scientific language:
 
 ## Next steps
 
-1. Complete **Codex Sprint 7** documentation update.
-2. Begin **Week 14 Signal Fingerprint Extractor** after Sprint 7 documentation is complete.
+1. **Sprint 7:** documentation/status update complete after this PR merges.
+2. **Immediate next implementation step:** Week 14 Signal Fingerprint Extractor.
 3. Later: build known-explanation exhaustion workflows.
 4. Later: consider candidate construction only after known explanations have been tested and found insufficient.
 
-Candidate-particle construction is intentionally not part of the current state or immediate next implementation step.
+Candidate-particle construction remains deferred. Real-data validation and streaming scalability remain future risks.
 
 ---
 

@@ -57,7 +57,7 @@ The current required regression check is:
 python -m pytest -q
 ```
 
-This command should pass before merging Sprint 7 documentation updates.
+This command should pass for Sprint 7 documentation updates.
 
 ## Current limitations
 
