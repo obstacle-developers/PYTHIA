@@ -1,0 +1,4 @@
+{"event_id":"mock-week13-event-001","trace_id":"mock-week13-trace-001","anomaly_score":0.72,"features":{"channel":"synthetic-electron","region":"barrel","mock_bin":1}}
+{"event_id":"mock-week13-event-002","trace_id":"mock-week13-trace-002","anomaly_score":0.74,"features":{"channel":"synthetic-electron","region":"barrel","mock_bin":1}}
+{"event_id":"mock-week13-event-003","trace_id":"mock-week13-trace-003","anomaly_score":0.81,"features":{"channel":"synthetic-muon","region":"endcap","mock_bin":2}}
+{"event_id":"mock-week13-event-004","trace_id":"mock-week13-trace-004","anomaly_score":0.83,"features":{"channel":"synthetic-muon","region":"endcap","mock_bin":2}}
