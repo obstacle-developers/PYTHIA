@@ -1,7 +1,12 @@
 from pathlib import Path
 
+import pytest
+
 from pythia.core.safety import (
+    assert_no_forbidden_discovery_language,
+    assert_record_uses_safe_language,
     find_forbidden_discovery_language,
+    find_forbidden_language_in_value,
     find_probability_misuse,
     safe_status_labels,
     scan_source_for_dynamic_execution,
@@ -32,3 +37,15 @@ def test_source_scanner_detects_eval_and_exec(tmp_path: Path):
     findings = scan_source_for_dynamic_execution(tmp_path)
     assert source in findings
     assert findings[source] == ["eval(", "exec("]
+
+
+def test_centralized_safety_catches_unsafe_strings():
+    assert "new physics found" in find_forbidden_language_in_value("new physics found")
+    with pytest.raises(ValueError, match="unsafe discovery language"):
+        assert_no_forbidden_discovery_language("confirmed signal")
+
+
+def test_centralized_safety_catches_nested_dictionaries():
+    record = {"outer": [{"inner": ("safe", "discovery confirmed")}]}
+    with pytest.raises(ValueError, match="unsafe discovery language"):
+        assert_record_uses_safe_language(record)

@@ -11,10 +11,10 @@ from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from numbers import Real
 from pathlib import Path
-import re
 from typing import Any
 
 from pythia.core.jsonl import append_jsonl, validate_record_has_keys
+from pythia.core.safety import assert_record_uses_safe_language
 
 JsonValue = Any
 JsonRecord = dict[str, JsonValue]
@@ -25,16 +25,6 @@ ALLOWED_CLUSTER_STATUSES = (
     "requires_review",
     "rejected_pattern",
     "insufficient_evidence",
-)
-
-FORBIDDEN_UNSAFE_PHRASES = (
-    "new particle " + "discovered",
-    "discovery " + "confirmed",
-    "new physics " + "found",
-    "proved",
-    "certain",
-    "guaranteed",
-    "confirmed " + "signal",
 )
 
 CLUSTER_RECORD_KEYS = (
@@ -74,32 +64,8 @@ def _utc_timestamp() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
-def _unsafe_phrases_in_value(value: Any) -> list[str]:
-    if isinstance(value, str):
-        lowered = value.lower()
-        return [
-            phrase
-            for phrase in FORBIDDEN_UNSAFE_PHRASES
-            if re.search(rf"(?<![a-z0-9_]){re.escape(phrase)}(?![a-z0-9_])", lowered)
-        ]
-    if isinstance(value, Mapping):
-        findings: list[str] = []
-        for key, nested_value in value.items():
-            findings.extend(_unsafe_phrases_in_value(key))
-            findings.extend(_unsafe_phrases_in_value(nested_value))
-        return findings
-    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
-        findings = []
-        for nested_value in value:
-            findings.extend(_unsafe_phrases_in_value(nested_value))
-        return findings
-    return []
-
-
 def _validate_safe_language(record: Mapping[str, Any]) -> None:
-    findings = sorted(set(_unsafe_phrases_in_value(record)))
-    if findings:
-        raise ValueError(f"unsafe discovery language is not allowed: {', '.join(findings)}")
+    assert_record_uses_safe_language(record)
 
 
 def _validate_cluster_status(status: str) -> None:
@@ -121,8 +87,11 @@ def _validate_record_type(record: Mapping[str, Any], expected_record_type: str) 
 
 
 def _validate_non_empty_string(record: Mapping[str, Any], key: str) -> None:
-    if not isinstance(record[key], str) or not record[key].strip():
+    value = record[key]
+    if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{key} must be a non-empty string")
+    if any(ord(character) < 32 or ord(character) == 127 for character in value):
+        raise ValueError(f"{key} must not contain control characters")
 
 
 def validate_anomaly_cluster_record(record: Mapping[str, Any]) -> None:
@@ -131,6 +100,8 @@ def validate_anomaly_cluster_record(record: Mapping[str, Any]) -> None:
     _validate_record_type(record, "anomaly_cluster")
     _validate_non_empty_string(record, "cluster_id")
     _validate_cluster_status(record["status"])
+    _validate_non_empty_string(record, "label")
+    _validate_non_empty_string(record, "feature_space")
     if not isinstance(record["member_count"], int) or isinstance(record["member_count"], bool):
         raise ValueError("member_count must be a non-negative integer")
     if record["member_count"] < 0:
@@ -157,6 +128,7 @@ def validate_cluster_consistency_record(record: Mapping[str, Any]) -> None:
     _validate_required_record(record, CLUSTER_CONSISTENCY_RECORD_KEYS)
     _validate_record_type(record, "anomaly_cluster_consistency")
     _validate_non_empty_string(record, "cluster_id")
+    _validate_non_empty_string(record, "check_name")
     _validate_cluster_status(record["status"])
     if not isinstance(record["weakening_conditions"], list):
         raise ValueError("weakening_conditions must be a list")

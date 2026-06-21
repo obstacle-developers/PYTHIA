@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from pythia.core.export import write_markdown
+from pythia.core.safety import assert_no_forbidden_discovery_language
 from pythia.omega.cluster_consistency import derive_cluster_status
 
 JsonRecord = dict[str, Any]
@@ -26,24 +27,13 @@ _LIMITATIONS = (
 
 _NEXT_STEP = "human review required before any later-stage feature work"
 
-_FORBIDDEN_PHRASES = (
-    "discov" + "ered",
-    "discovery " + "confirmed",
-    "new particle",
-    "new physics " + "found",
-    "proved",
-    "certain",
-    "guaranteed",
-    "confirmed " + "signal",
-)
-
 
 def _safe_text(value: Any) -> str:
     text = str(value)
-    lowered = text.lower()
-    for phrase in _FORBIDDEN_PHRASES:
-        if phrase in lowered:
-            raise ValueError(f"unsafe report language is not allowed: {phrase}")
+    try:
+        assert_no_forbidden_discovery_language(text)
+    except ValueError as exc:
+        raise ValueError(f"unsafe report language is not allowed: {exc}") from exc
     return text
 
 
