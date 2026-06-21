@@ -213,3 +213,27 @@ def test_append_rejects_invalid_consistency_status(tmp_path):
 
     with pytest.raises(ValueError, match="invalid cluster status"):
         append_cluster_consistency(tmp_path / "consistency.jsonl", record)
+
+
+def test_rejecting_control_character_strings():
+    with pytest.raises(ValueError, match="control characters"):
+        make_anomaly_cluster_record(
+            cluster_id="omega-cluster-\x00unsafe",
+            status="candidate_pattern",
+            label="tiny mock timing residual group",
+            feature_space="mock_residual_features_v0",
+            member_count=1,
+            summary="candidate pattern requiring human review",
+        )
+
+
+def test_rejecting_empty_checked_strings():
+    with pytest.raises(ValueError, match="label must be a non-empty string"):
+        make_anomaly_cluster_record(
+            cluster_id="omega-cluster-empty-label",
+            status="candidate_pattern",
+            label=" ",
+            feature_space="mock_residual_features_v0",
+            member_count=1,
+            summary="candidate pattern requiring human review",
+        )

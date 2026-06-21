@@ -205,3 +205,15 @@ def test_no_raw_data_or_artifact_files_are_added():
     ]
 
     assert disallowed_paths == []
+
+
+def test_forbidden_report_nested_cluster_text_blocked():
+    report = build_week13_cluster_report(_engine_output())
+    report["clusters"][0]["label"] = "discovery confirmed"
+
+    try:
+        render_week13_cluster_report_markdown(report)
+    except ValueError as exc:
+        assert "unsafe report language" in str(exc)
+    else:
+        raise AssertionError("unsafe report label was not blocked")

@@ -7,7 +7,7 @@ handling, and physics interpretation logic.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 import json
 from pathlib import Path
 from typing import Any
@@ -32,11 +32,29 @@ def _stable_value(value: Any) -> str:
         return repr(value)
 
 
-def _feature_value(record: Mapping[str, Any], key: str) -> Any:
+def _feature_value(record: Mapping[str, Any], key: str, *, allow_missing: bool = False) -> Any:
     features = record.get("features")
-    if isinstance(features, Mapping) and key in features:
-        return features[key]
-    return record.get(key)
+    if isinstance(features, Mapping):
+        if key in features:
+            return features[key]
+        if allow_missing:
+            return None
+        raise ValueError(f"missing signature key {key!r} in features")
+    if key in record:
+        return record[key]
+    if allow_missing:
+        return None
+    raise ValueError(f"missing signature key {key!r}")
+
+
+def _signature_for_record(
+    record: Mapping[str, Any], signature_keys: Sequence[str], *, allow_missing: bool = False
+) -> dict[str, Any]:
+    return {key: _feature_value(record, key, allow_missing=allow_missing) for key in signature_keys}
+
+
+def _sort_signature(signature: Mapping[str, Any], signature_keys: Sequence[str]) -> tuple[tuple[str, str], ...]:
+    return tuple((key, _stable_value(signature[key])) for key in signature_keys)
 
 
 def _record_sort_key(record: Mapping[str, Any]) -> tuple[str, str, str]:
@@ -48,13 +66,16 @@ def _record_sort_key(record: Mapping[str, Any]) -> tuple[str, str, str]:
 
 
 def group_by_signature(
-    records: Sequence[Mapping[str, Any]], signature_keys: Sequence[str]
+    records: Sequence[Mapping[str, Any]], signature_keys: Sequence[str], *, allow_missing: bool = False
 ) -> list[GroupedSignature]:
     """Group mock anomaly records by exact selected feature-key signatures.
 
-    The return value is a list sorted by signature, and records inside each group
-    are sorted by stable identifiers. Missing keys are represented as ``None`` so
-    repeated calls over the same inputs produce the same grouping.
+    This is a mock in-memory helper, not the production LHCO-scale clustering
+    path. The return value is a list sorted by signature, and records inside
+    each group are sorted by stable identifiers. Missing signature keys raise
+    ``ValueError`` by default to keep audit paths explicit; pass
+    ``allow_missing=True`` only for legacy mock fixtures that intentionally group
+    missing values as ``None``.
     """
     if not signature_keys:
         raise ValueError("signature_keys must contain at least one key")
@@ -63,8 +84,8 @@ def group_by_signature(
     for record in records:
         if not isinstance(record, Mapping):
             raise TypeError("records must contain mappings")
-        signature = {key: _feature_value(record, key) for key in signature_keys}
-        sort_signature = tuple((key, _stable_value(signature[key])) for key in signature_keys)
+        signature = _signature_for_record(record, signature_keys, allow_missing=allow_missing)
+        sort_signature = _sort_signature(signature, signature_keys)
         groups.setdefault(sort_signature, {"signature": signature, "records": []})["records"].append(
             dict(record)
         )
@@ -73,6 +94,41 @@ def group_by_signature(
     for group in grouped:
         group["records"] = sorted(group["records"], key=_record_sort_key)
     return grouped
+
+
+def iter_group_sorted_by_signature(
+    records: Iterable[Mapping[str, Any]], signature_keys: Sequence[str]
+) -> Iterable[GroupedSignature]:
+    """Yield one signature group at a time from records already sorted by signature.
+
+    This lightweight standard-library helper stores only the current group in
+    memory. It validates required signature keys strictly and intentionally uses
+    no heavy clustering dependencies.
+    """
+    if not signature_keys:
+        raise ValueError("signature_keys must contain at least one key")
+
+    current_sort_signature: tuple[tuple[str, str], ...] | None = None
+    current_signature: dict[str, Any] | None = None
+    current_records: list[JsonRecord] = []
+
+    for record in records:
+        if not isinstance(record, Mapping):
+            raise TypeError("records must contain mappings")
+        signature = _signature_for_record(record, signature_keys)
+        sort_signature = _sort_signature(signature, signature_keys)
+        if current_sort_signature is None:
+            current_sort_signature = sort_signature
+            current_signature = signature
+        elif sort_signature != current_sort_signature:
+            yield {"signature": current_signature, "records": current_records}
+            current_sort_signature = sort_signature
+            current_signature = signature
+            current_records = []
+        current_records.append(dict(record))
+
+    if current_sort_signature is not None:
+        yield {"signature": current_signature, "records": current_records}
 
 
 def _features_for_member(record: Mapping[str, Any]) -> dict[str, Any]:
