@@ -7,6 +7,7 @@ def test_package_imports_cleanly():
         "pythia.core.config",
         "pythia.core.db",
         "pythia.core.export",
+        "pythia.core.jsonl",
         "pythia.core.safety",
         "pythia.reasoning.retrieval",
         "pythia.reasoning.constraints",

@@ -8,6 +8,7 @@ def test_expected_package_layout_exists():
         "pythia/core/config.py",
         "pythia/core/db.py",
         "pythia/core/export.py",
+        "pythia/core/jsonl.py",
         "pythia/core/safety.py",
         "pythia/reasoning/__init__.py",
         "pythia/reasoning/retrieval.py",
