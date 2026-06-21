@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from pythia.core.jsonl import iter_jsonl
 from pythia.omega.cluster_consistency import (
     append_consistency_records,
@@ -108,6 +110,32 @@ def test_append_consistency_records_writes_jsonl(tmp_path):
 
     assert returned_path == path
     assert list(iter_jsonl(path)) == records
+
+
+def test_append_consistency_records_writes_generator_records(tmp_path):
+    path = tmp_path / "consistency.jsonl"
+    records = evaluate_cluster_consistency(_cluster_record(), _passing_members(), ["channel"], min_anomaly_score=0.7)
+
+    returned_path = append_consistency_records(path, (record for record in records))
+
+    written_records = list(iter_jsonl(path))
+    assert returned_path == path
+    assert written_records == records
+    assert len(written_records) == len(records)
+
+
+def test_append_consistency_records_invalid_generator_record_raises(tmp_path):
+    path = tmp_path / "consistency.jsonl"
+    valid_record = evaluate_cluster_consistency(_cluster_record(), _passing_members(), ["channel"])[0]
+
+    def records():
+        yield valid_record
+        invalid_record = dict(valid_record)
+        invalid_record.pop("status")
+        yield invalid_record
+
+    with pytest.raises(ValueError, match="record missing required keys: status"):
+        append_consistency_records(path, records())
 
 
 def test_no_unsafe_discovery_language():

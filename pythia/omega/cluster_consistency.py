@@ -7,7 +7,7 @@ artifact handling, and interpretation claims.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from numbers import Real
 from pathlib import Path
 from typing import Any
@@ -135,9 +135,13 @@ def derive_cluster_status(consistency_records: Sequence[Mapping[str, Any]]) -> s
     return "unresolved_anomaly_family"
 
 
-def append_consistency_records(path: str | Path, records: Sequence[Mapping[str, Any]]) -> Path:
+def append_consistency_records(path: str | Path, records: Iterable[Mapping[str, Any]]) -> Path:
     """Append consistency records to JSONL using cluster JSONL validation."""
     output_path = Path(path)
-    for record in records:
-        validate_cluster_consistency_record(record)
-    return append_jsonl_many(output_path, records)
+
+    def _validated_records():
+        for record in records:
+            validate_cluster_consistency_record(record)
+            yield record
+
+    return append_jsonl_many(output_path, _validated_records())
