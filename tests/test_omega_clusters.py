@@ -173,3 +173,43 @@ def test_ensuring_no_raw_datasets_or_artifacts_are_added():
     ]
 
     assert disallowed_paths == []
+
+
+def test_append_rejects_invalid_cluster_record_type(tmp_path):
+    record = _cluster_record()
+    record["record_type"] = "not_anomaly_cluster"
+
+    with pytest.raises(ValueError, match="invalid record_type"):
+        append_cluster_record(tmp_path / "clusters.jsonl", record)
+
+
+def test_append_rejects_invalid_cluster_status(tmp_path):
+    record = _cluster_record()
+    record["status"] = "verified"
+
+    with pytest.raises(ValueError, match="invalid cluster status"):
+        append_cluster_record(tmp_path / "clusters.jsonl", record)
+
+
+def test_append_rejects_negative_member_count(tmp_path):
+    record = _cluster_record()
+    record["member_count"] = -1
+
+    with pytest.raises(ValueError, match="member_count must be a non-negative integer"):
+        append_cluster_record(tmp_path / "clusters.jsonl", record)
+
+
+def test_append_rejects_non_numeric_anomaly_score(tmp_path):
+    record = _member_record()
+    record["anomaly_score"] = "high"
+
+    with pytest.raises(ValueError, match="anomaly_score must be numeric"):
+        append_cluster_member(tmp_path / "members.jsonl", record)
+
+
+def test_append_rejects_invalid_consistency_status(tmp_path):
+    record = _consistency_record()
+    record["status"] = "verified"
+
+    with pytest.raises(ValueError, match="invalid cluster status"):
+        append_cluster_consistency(tmp_path / "consistency.jsonl", record)

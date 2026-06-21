@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
+from numbers import Real
 from pathlib import Path
 import re
 from typing import Any
@@ -112,6 +113,57 @@ def _validate_required_record(record: Mapping[str, Any], required_keys: Sequence
     _validate_safe_language(record)
 
 
+def _validate_record_type(record: Mapping[str, Any], expected_record_type: str) -> None:
+    if record["record_type"] != expected_record_type:
+        raise ValueError(
+            f"invalid record_type {record['record_type']!r}; expected {expected_record_type!r}"
+        )
+
+
+def _validate_non_empty_string(record: Mapping[str, Any], key: str) -> None:
+    if not isinstance(record[key], str) or not record[key].strip():
+        raise ValueError(f"{key} must be a non-empty string")
+
+
+def validate_anomaly_cluster_record(record: Mapping[str, Any]) -> None:
+    """Validate the schema and safe wording for an anomaly cluster record."""
+    _validate_required_record(record, CLUSTER_RECORD_KEYS)
+    _validate_record_type(record, "anomaly_cluster")
+    _validate_non_empty_string(record, "cluster_id")
+    _validate_cluster_status(record["status"])
+    if not isinstance(record["member_count"], int) or isinstance(record["member_count"], bool):
+        raise ValueError("member_count must be a non-negative integer")
+    if record["member_count"] < 0:
+        raise ValueError("member_count must be a non-negative integer")
+    if not isinstance(record["human_review_required"], bool):
+        raise ValueError("human_review_required must be bool")
+
+
+def validate_cluster_member_record(record: Mapping[str, Any]) -> None:
+    """Validate the schema and safe wording for an anomaly cluster member record."""
+    _validate_required_record(record, CLUSTER_MEMBER_RECORD_KEYS)
+    _validate_record_type(record, "anomaly_cluster_member")
+    _validate_non_empty_string(record, "cluster_id")
+    _validate_non_empty_string(record, "event_id")
+    _validate_non_empty_string(record, "trace_id")
+    if not isinstance(record["anomaly_score"], Real) or isinstance(record["anomaly_score"], bool):
+        raise ValueError("anomaly_score must be numeric")
+    if not isinstance(record["features"], Mapping):
+        raise ValueError("features must be a mapping")
+
+
+def validate_cluster_consistency_record(record: Mapping[str, Any]) -> None:
+    """Validate the schema and safe wording for an anomaly consistency record."""
+    _validate_required_record(record, CLUSTER_CONSISTENCY_RECORD_KEYS)
+    _validate_record_type(record, "anomaly_cluster_consistency")
+    _validate_non_empty_string(record, "cluster_id")
+    _validate_cluster_status(record["status"])
+    if not isinstance(record["weakening_conditions"], list):
+        raise ValueError("weakening_conditions must be a list")
+    if not isinstance(record["kill_conditions"], list):
+        raise ValueError("kill_conditions must be a list")
+
+
 def make_anomaly_cluster_record(
     *,
     cluster_id: str,
@@ -124,9 +176,6 @@ def make_anomaly_cluster_record(
     created_at: str | None = None,
 ) -> JsonRecord:
     """Build a lightweight anomaly cluster record using safe status labels."""
-    _validate_cluster_status(status)
-    if member_count < 0:
-        raise ValueError("member_count must be non-negative")
     record: JsonRecord = {
         "record_type": "anomaly_cluster",
         "cluster_id": cluster_id,
@@ -138,7 +187,7 @@ def make_anomaly_cluster_record(
         "summary": summary,
         "human_review_required": human_review_required,
     }
-    _validate_required_record(record, CLUSTER_RECORD_KEYS)
+    validate_anomaly_cluster_record(record)
     return record
 
 
@@ -152,16 +201,18 @@ def make_cluster_member_record(
     membership_reason: str,
 ) -> JsonRecord:
     """Build a lightweight anomaly cluster member record."""
+    if not isinstance(features, Mapping):
+        raise ValueError("features must be a mapping")
     record: JsonRecord = {
         "record_type": "anomaly_cluster_member",
         "cluster_id": cluster_id,
         "event_id": event_id,
         "trace_id": trace_id,
-        "anomaly_score": float(anomaly_score),
+        "anomaly_score": anomaly_score,
         "features": dict(features),
         "membership_reason": membership_reason,
     }
-    _validate_required_record(record, CLUSTER_MEMBER_RECORD_KEYS)
+    validate_cluster_member_record(record)
     return record
 
 
@@ -175,7 +226,6 @@ def make_cluster_consistency_record(
     kill_conditions: Sequence[str] | None = None,
 ) -> JsonRecord:
     """Build a lightweight anomaly cluster consistency check record."""
-    _validate_cluster_status(status)
     record: JsonRecord = {
         "record_type": "anomaly_cluster_consistency",
         "cluster_id": cluster_id,
@@ -185,7 +235,7 @@ def make_cluster_consistency_record(
         "weakening_conditions": list(weakening_conditions or ()),
         "kill_conditions": list(kill_conditions or ()),
     }
-    _validate_required_record(record, CLUSTER_CONSISTENCY_RECORD_KEYS)
+    validate_cluster_consistency_record(record)
     return record
 
 
@@ -195,11 +245,11 @@ def summarize_cluster(
     consistency_records: Sequence[Mapping[str, Any]] | None = None,
 ) -> JsonRecord:
     """Summarize one cluster and its mock member/check records without raw data."""
-    _validate_required_record(cluster_record, CLUSTER_RECORD_KEYS)
+    validate_anomaly_cluster_record(cluster_record)
     for member_record in member_records:
-        _validate_required_record(member_record, CLUSTER_MEMBER_RECORD_KEYS)
+        validate_cluster_member_record(member_record)
     for consistency_record in consistency_records or ():
-        _validate_required_record(consistency_record, CLUSTER_CONSISTENCY_RECORD_KEYS)
+        validate_cluster_consistency_record(consistency_record)
 
     scores = [float(record["anomaly_score"]) for record in member_records]
     summary: JsonRecord = {
@@ -220,17 +270,17 @@ def summarize_cluster(
 
 def append_cluster_record(path: str | Path, record: Mapping[str, Any]) -> Path:
     """Append one cluster record to JSONL without reading existing records."""
-    _validate_required_record(record, CLUSTER_RECORD_KEYS)
+    validate_anomaly_cluster_record(record)
     return append_jsonl(path, record)
 
 
 def append_cluster_member(path: str | Path, record: Mapping[str, Any]) -> Path:
     """Append one cluster member record to JSONL without reading existing records."""
-    _validate_required_record(record, CLUSTER_MEMBER_RECORD_KEYS)
+    validate_cluster_member_record(record)
     return append_jsonl(path, record)
 
 
 def append_cluster_consistency(path: str | Path, record: Mapping[str, Any]) -> Path:
     """Append one consistency check record to JSONL without reading existing records."""
-    _validate_required_record(record, CLUSTER_CONSISTENCY_RECORD_KEYS)
+    validate_cluster_consistency_record(record)
     return append_jsonl(path, record)
