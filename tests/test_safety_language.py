@@ -49,3 +49,18 @@ def test_centralized_safety_catches_nested_dictionaries():
     record = {"outer": [{"inner": ("safe", "discovery confirmed")}]}
     with pytest.raises(ValueError, match="unsafe discovery language"):
         assert_record_uses_safe_language(record)
+
+
+def test_empty_string_safety_behavior():
+    assert find_forbidden_discovery_language("") == []
+    assert find_forbidden_language_in_value("") == []
+    assert_no_forbidden_discovery_language("")
+
+
+def test_forbidden_phrase_detection_still_works():
+    assert "confirmed signal" in find_forbidden_language_in_value("A confirmed signal claim is unsafe.")
+
+
+def test_nested_forbidden_phrase_detection_still_works():
+    nested = {"items": [{"text": "This says new particle discovered."}]}
+    assert "new particle discovered" in find_forbidden_language_in_value(nested)

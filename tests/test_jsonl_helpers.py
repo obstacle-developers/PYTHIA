@@ -40,3 +40,20 @@ def test_validate_record_has_keys():
 
     with pytest.raises(ValueError, match="missing required keys: status"):
         validate_record_has_keys({"id": "candidate"}, ["id", "status"])
+
+
+def test_append_jsonl_many_writes_multiple_records(tmp_path):
+    from pythia.core.jsonl import append_jsonl_many
+
+    path = append_jsonl_many(tmp_path / "records.jsonl", [{"b": 2, "a": 1}, {"id": "second"}])
+
+    assert path.read_text(encoding="utf-8") == '{"a":1,"b":2}\n{"id":"second"}\n'
+
+
+def test_append_jsonl_many_accepts_generators_and_preserves_jsonl_validity(tmp_path):
+    from pythia.core.jsonl import append_jsonl_many
+
+    path = tmp_path / "records.jsonl"
+    append_jsonl_many(path, ({"id": index} for index in range(3)))
+
+    assert list(iter_jsonl(path)) == [{"id": 0}, {"id": 1}, {"id": 2}]

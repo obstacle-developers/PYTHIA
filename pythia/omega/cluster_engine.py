@@ -12,12 +12,13 @@ import json
 from pathlib import Path
 from typing import Any
 
+from pythia.core.jsonl import append_jsonl_many
 from pythia.omega.clusters import (
-    append_cluster_member,
-    append_cluster_record,
     make_anomaly_cluster_record,
     make_cluster_member_record,
     summarize_cluster,
+    validate_anomaly_cluster_record,
+    validate_cluster_member_record,
 )
 
 JsonRecord = dict[str, Any]
@@ -186,11 +187,11 @@ def run_mock_cluster_engine(
     """Run the tiny in-memory mock cluster pipeline and return dictionaries only."""
     grouped = group_by_signature(records, signature_keys)
     built = build_cluster_records(grouped, feature_space)
+    members_by_cluster: dict[str, list[Mapping[str, Any]]] = {}
+    for member in built["members"]:
+        members_by_cluster.setdefault(str(member["cluster_id"]), []).append(member)
     summaries = [
-        summarize_cluster(
-            cluster,
-            [member for member in built["members"] if member["cluster_id"] == cluster["cluster_id"]],
-        )
+        summarize_cluster(cluster, members_by_cluster.get(str(cluster["cluster_id"]), []))
         for cluster in built["clusters"]
     ]
     return {"grouped_records": grouped, **built, "summaries": summaries}
@@ -200,8 +201,12 @@ def append_cluster_engine_output(
     output: Mapping[str, Sequence[Mapping[str, Any]]], cluster_path: str | Path, member_path: str | Path
 ) -> dict[str, Path]:
     """Append cluster-engine cluster/member records to JSONL paths."""
-    for cluster in output.get("clusters", ()):
-        append_cluster_record(cluster_path, cluster)
-    for member in output.get("members", ()):
-        append_cluster_member(member_path, member)
+    clusters = list(output.get("clusters", ()))
+    members = list(output.get("members", ()))
+    for cluster in clusters:
+        validate_anomaly_cluster_record(cluster)
+    for member in members:
+        validate_cluster_member_record(member)
+    append_jsonl_many(cluster_path, clusters)
+    append_jsonl_many(member_path, members)
     return {"cluster_path": Path(cluster_path), "member_path": Path(member_path)}

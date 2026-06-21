@@ -34,6 +34,22 @@ def append_jsonl(path: str | Path, record: JsonRecord) -> Path:
     return output_path
 
 
+def append_jsonl_many(path: str | Path, records: Iterable[JsonRecord]) -> Path:
+    """Append JSON objects to a JSON Lines file while opening it once.
+
+    Records are streamed from the iterable and are not accumulated in memory.
+    """
+    output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("a", encoding="utf-8") as handle:
+        for record in records:
+            if not isinstance(record, Mapping):
+                raise TypeError("record must be a mapping")
+            line = json.dumps(record, sort_keys=True, separators=(",", ":"))
+            handle.write(f"{line}\n")
+    return output_path
+
+
 def iter_jsonl(path: str | Path):
     """Yield JSON objects from a JSON Lines file, streaming line by line."""
     input_path = Path(path)
