@@ -47,6 +47,16 @@ def _consistency_by_cluster(output):
     return grouped
 
 
+def _passing_consistency_by_cluster(output):
+    grouped = {}
+    for cluster in output["clusters"]:
+        members = [member for member in output["members"] if member["cluster_id"] == cluster["cluster_id"]]
+        grouped[cluster["cluster_id"]] = evaluate_cluster_consistency(
+            cluster, members, ["channel"], min_cluster_size=1, min_anomaly_score=0.5
+        )
+    return grouped
+
+
 def test_report_dictionary_creation():
     report = build_week13_cluster_report(_engine_output())
 
@@ -80,6 +90,29 @@ def test_consistency_summary_behavior():
 
     assert report["consistency_summary"]["check_count"] == 6
     assert report["consistency_summary"]["insufficient_evidence_checks"] == 2
+
+
+def test_report_without_consistency_records_is_insufficient_evidence():
+    report = build_week13_cluster_report(_engine_output())
+
+    assert report["consistency_summary"]["check_count"] == 0
+    assert report["status"] == "insufficient_evidence"
+
+
+def test_report_with_all_passing_consistency_records_is_unresolved_anomaly_family():
+    output = _engine_output()
+    report = build_week13_cluster_report(output, _passing_consistency_by_cluster(output))
+
+    assert report["consistency_summary"]["check_count"] == 6
+    assert report["consistency_summary"]["insufficient_evidence_checks"] == 0
+    assert report["status"] == "unresolved_anomaly_family"
+
+
+def test_report_with_any_failing_consistency_record_is_insufficient_evidence():
+    output = _engine_output()
+    report = build_week13_cluster_report(output, _consistency_by_cluster(output))
+
+    assert report["consistency_summary"]["insufficient_evidence_checks"] > 0
     assert report["status"] == "insufficient_evidence"
 
 

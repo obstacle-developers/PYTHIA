@@ -133,7 +133,12 @@ def build_week13_cluster_report(
 
     total_members = sum(cluster["member_count"] for cluster in report_clusters)
     summary = _consistency_summary(consistency)
-    report_status = "insufficient_evidence" if summary["insufficient_evidence_checks"] else "unresolved_anomaly_family"
+    if summary["check_count"] == 0:
+        report_status = "insufficient_evidence"
+    elif summary["insufficient_evidence_checks"] > 0:
+        report_status = "insufficient_evidence"
+    else:
+        report_status = "unresolved_anomaly_family"
 
     return {
         "report_type": "week13_cluster_report",
