@@ -216,3 +216,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# PYTHIA generated artifacts
+*.db
+*.sqlite
+*.zip
+.ipynb_checkpoints/
+/exports/
+/data/
+/artifacts/
